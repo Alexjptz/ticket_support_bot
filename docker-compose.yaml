@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  verix_postgres:
+      container_name: verix_postgres
+      image: postgres:alpine3.18
+      ports:
+        - "5432:${DATABASE_PORT}"
+      environment:
+        - POSTGRES_USER=${DATABASE_USER}
+        - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+      restart: always
+      volumes:
+        - verix_postgres:/var/lib/postgresql/shift_work_postgres
+
+#  ticket_support_bot:
+#          build: .
+#          container_name: ticket_support_bot
+#          restart: always
+#          ports:
+#            - "${PANEL_PORT}:${PANEL_PORT}"
+#          depends_on:
+#            - verix_postgres
+#          volumes:
+#            - /root/ticket_support_bot/storage:/usr/src/app/ticket_support_bot/storage
+#            - /root/ticket_support_bot/logs:/usr/src/app/ticket_support_bot/logs
+
+volumes:
+  verix_postgres:
+    external: true
