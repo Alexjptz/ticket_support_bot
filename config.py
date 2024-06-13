@@ -30,7 +30,7 @@ server = {
     'secret_key': os.getenv('SECRET_KEY')
 }
 
-DEFAULT_CHANNEL_ID = -10...
+DEFAULT_CHANNEL_ID = -10
 DEFAULT_CHANNEL_URL = 'https://t.me/channel'
 
-admin_ids = [telegram_id]
+admin_ids = ['*']
