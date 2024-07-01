@@ -36,6 +36,7 @@ class TicketModel(base):
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger)
     manager_id = Column(BigInteger, default=None)
+    manager_username = Column(String) # добавить колонку о менеджере
     username = Column(String)
     tg_name = Column(String)
     open_date = Column(DateTime)

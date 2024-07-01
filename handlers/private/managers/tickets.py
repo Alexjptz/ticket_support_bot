@@ -51,6 +51,7 @@ async def get_accept_ticket_inline_keyboard(lang: str, ticket_id: str) -> Inline
 
         current_date = datetime.now(timezone(timedelta(hours=3))) + timedelta(hours=3)
         ticket.manager_id = callback.message.chat.id
+        ticket.manager_username = manager.tg_name
         ticket.last_modified = current_date
         await db.tickets.update(ticket=ticket)
 

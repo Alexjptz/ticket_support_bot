@@ -44,6 +44,7 @@ class TicketView(ModelView, model=TicketModel):
         TicketModel.id: 'ID тикета',
         TicketModel.user_id: 'ID пользователя',
         TicketModel.manager_id: 'ID менеджера',
+        TicketModel.manager_username: 'Имя менеджера', # вид имени в админке
         TicketModel.username: 'Имя пользователя',
         TicketModel.tg_name: 'Telegram имя',
         TicketModel.open_date: 'Дата открытия',
@@ -58,6 +59,7 @@ class TicketView(ModelView, model=TicketModel):
         TicketModel.id,
         TicketModel.user_id,
         TicketModel.manager_id,
+        TicketModel.manager_username, # дополняю колонку именем менеджера
         TicketModel.username,
         TicketModel.tg_name,
         TicketModel.open_date,
@@ -73,6 +75,7 @@ class TicketView(ModelView, model=TicketModel):
         TicketModel.user_id,
         TicketModel.username,
         TicketModel.tg_name,
+        TicketModel.manager_username, # поиск по имени менеджера
     ]
 
 

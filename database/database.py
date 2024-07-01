@@ -255,6 +255,7 @@ class Database:
                     'manager_id': ticket.manager_id,
                     'username': ticket.username,
                     'tg_name': ticket.tg_name,
+                    'manager_username': ticket.manager_username,
                     'open_date': ticket.open_date,
                     'close_date': ticket.close_date,
                     'last_modified': ticket.last_modified,

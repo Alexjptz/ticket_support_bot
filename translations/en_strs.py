@@ -87,7 +87,6 @@ class EnTranslation:
                  '<b>Number of conversations (as a user):</b> {}\n\n',
                  '<b>Number of conversations (as a manager):</b> {}\n\n',
                  ))
-
     user_is_banned = lambda is_banned: f'<b>Is user banned:</b> {" ✔️ " if is_banned else " ✖️ "}\n\n'
     user_restricted = '<b>User restriction time:</b> {}\n\n'
     conversations = lambda upper, len_tickets: f'<b>Conversations |{upper}/{len_tickets}|</b>\n\n'
@@ -105,7 +104,7 @@ class EnTranslation:
     # ----------------------------------------------------------------------------------------
 
     # Middleware
-    middle_check_channel = f'You cannot use this command because <b>you are not subscribed</b> to the channel! You can use the button and check your subscription to be sure that the provided functionality will work again'
+    middle_check_channel = f'You cannot write to the customer service because <b>you are not subscribed</b> to the channel! You can use the button and check your subscription'
 
     # Users channel
     channel_subscribed = '<b>You are subscribed to the channel!</b>\n\n Use the <i>/help</i> command and use the menu buttons!'
@@ -116,7 +115,7 @@ class EnTranslation:
     use_help = 'Use the <i>/help</i> command to continue'
 
     # Users General
-    general_start = '<b>Welcome! 👋</b>\n\n The chatbot will help you stay in touch with our managers thanks to the conversation system 📋\n\n To continue, use the /help command or the corresponding menu buttons'
+    general_start = '<b>Welcome to Legends Group Care Service ❤️‍🩹</b>\n\n We accept applications <b>24/7</b> 🗳\n\n Answering questions from <b>6:00</b> до <b>18:00</b> UTC 🌐\n\n Use the buttons below ⬇️'
     general_help = ('<b>List of commands:</b> 📃\n\n'
                     '<b>/create_ ticket</b> - <i>create a conversation</i>\n'
                     '<b>/my_tickets</b> - <i>show your own conversations</i>\n'
@@ -129,17 +128,15 @@ class EnTranslation:
     ticket_opened_already = '<b>You already have an open conversation!</b>\n\n Use the <i>/my_tickets</i> command to view the information'
 
     ticket_ask_name = '<b>How can I contact you?</b> <i>(up to 50 characters)</i>'
-    ticket_ask_name_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Try sending your name again'
+    ticket_ask_name_error = '<b>I did not get it 🤪</b>\n\Make sure you entered the data correctly? Please try sending the name again'
 
-    ticket_ask_title = 'Please enter the <b>name</b> of the topic of the conversation! <i>(up to 50 characters)</i>\n\n<i>For example:</i> marriage, delivery, price, etc.'
-    ticket_ask_title_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Try sending the conversation title again'
+    ticket_ask_title = 'Please enter the <b>name</b> of the topic of the conversation! <i>(up to 50 characters)</i>\n\n<i>For example:</i> Venture, node, airdrop, etc.'
+    ticket_ask_title_error = '<b>I did not get it 🤪</b>\n\Make sure you entered the data correctly? Please try sending the conversation title again'
 
     ticket_ask_description = 'Please write a short <b>description</b> for more clarity! <i>(up to 100 characters)</i>\n\n<i>For example:</i> the product did not fit, I want to refund the money'
-    ticket_ask_description_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Try sending a short description of the conversation again'
+    ticket_ask_description_error = '<b>I did not get it 🤪</b>\n\Make sure you entered the data correctly? Please try sending a short description of the conversation again'
 
     ticket_info = lambda id_, tg_name, name, title, description: f'User <b>{name}</b> has opened a conversation!\n<b>ID:</b> {int(id_)}\n<b>TG name:</b> {tg_name}\n\n<b>Title:</b> {title}\n\n<b>Description:</b> {description}'
-
-
     ticket_no_opened = '<b>You don\'t have an open conversation!</b>\n\n Use the <i>/create_ ticket</i> command to create a conversation'
     ticket_no_opened_manager = '<b>You don\'t have an open conversation!</b>\n\n Use the <i>/opened_tickets</i> command to see open conversations'
     ticket_opened = '<b>You have opened a conversation!</b>\n\n Wait until our manager connects to you\n\n To close the conversation, use the command <i>/my_tickets</i>'
@@ -166,10 +163,10 @@ class EnTranslation:
     ticket_no_opened_tickets = '<b>There are no open conversations!</b>'
 
     ticket_get_mute = 'Please enter how many <b>minutes</b> the user will not be able to open conversations or open them!\n\n<i>For example:</i> 5, 15, 90, etc. Or enter 0 to remove the restrictions'
-    ticket_get_mute_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Try sending the number of minutes again'
+    ticket_get_mute_error = '<b>I did not get it 🤪</b>\n\Make sure you entered the data correctly? Try sending the number of minutes again'
 
     # Managers Restrictions
-    restriction_before = lambda date: f' Manager forbade you to create or write to conversations before {date} Moscow time. If you had an open conversation, then it\'s closed!'
+    restriction_before = lambda date: f' Manager forbade you to create or write to conversations before {date} UTC. If you had an open conversation, then it\'s closed!'
     restriction_unmuted = '<b>Restrictions are lifted!</b>\n\n yOu can create or write in conversations again'
     restirction_get_muted = lambda mins: f' Manager forbade you to create or write to conversations on {mins} min. If you had an open conversation, then it\'s closed!'
     restriction_succesfully = lambda mins: f'<b>You forbade me to write/create conversations for the user for {mins} min. The user\'s conversation was closed if it was open!</b>'
@@ -194,7 +191,7 @@ class EnTranslation:
     data_update = 'The data has been updated!'
 
     data_ask_comment = 'Please enter a <b>comment</b> to the conversation <i>(up to 100 characters)</i>'
-    data_ask_comment_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Try to send a comment again'
+    data_ask_comment_error = '<b>I did not get it 🤪</b>\n\Make sure you entered the data correctly? Try to send a comment again'
 
     data_title_changed = lambda title: f' Manager changed the <b>title</b> of the conversation to: <b>{title}</b>'
     data_description_changed = lambda \
@@ -202,7 +199,7 @@ class EnTranslation:
 
     # Managers User Search
     search_ask_info = 'Please enter <b>telegram name/ID/link</b> of the user\n\nexample: <i>765432125</i> or <i>Ivan Ivanovich</i> or <i>@url_user_name</i>'
-    search_ask_info_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Take a close look at the example and try to send the data again!'
+    search_ask_info_error = '<b>I did not get it 🤪</b>\n\Make sure you entered the data correctly? Take a close look at the example and try to send the data again!'
 
     search_manager_now = '<b>You are the manager now!</b>\n\n Use the <i>/help</i> command to learn about new commands'
     search_user_now = '<b>You are now a regular user!</b>\n\n Use the <i>/help</i> command to see the available commands'
