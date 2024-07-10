@@ -9,7 +9,7 @@ from starlette.responses import RedirectResponse
 from logger import server_logger
 import config as cf
 from database import db
-from .models import UserView, TicketView, PreferenceView
+from .models import UserView, TicketView, PreferenceView, CategoryView, QuestionView
 
 app = FastAPI()
 app.add_middleware(SessionMiddleware, secret_key=cf.server['secret_key'])
@@ -17,7 +17,7 @@ security = HTTPBasic()
 
 admin = Admin(app=app, engine=db.engine)
 [admin.add_view(view) for view in [
-    UserView, TicketView, PreferenceView
+    UserView, TicketView, PreferenceView, CategoryView, QuestionView
 ]]
 
 

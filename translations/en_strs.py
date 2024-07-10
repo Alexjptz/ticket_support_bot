@@ -251,15 +251,18 @@ class EnTranslation:
                           '<b>/lang</b> - <i>change language</i>')
 
     # Admin FAQ
-    faq_ask_question = 'Please enter the <b>question</b> to be displayed in inline mode. Preferably short\n\nexample: What is the shipping cost?'
+    faq_category_exist = 'Category name already exist. Please enter another name'
+    faq_ask_category = 'Please enter a <b>category</b> to display inline. Preferably short.'
+    faq_ask_question = 'Please enter the <b>question</b> to be displayed in inline mode. Preferably short.'
     faq_ask_question_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Try submitting the question again'
 
-    faq_ask_content = '<b>Send a message</b> that will be displayed when you select this question'
+    faq_ask_content = '<b>Send a message</b> that will be displayed when you select this option'
     faq_ask_content_error = '<b>Incorrect input!</b>\n\Make sure you entered the data correctly? Try sending the text again'
 
     faq_added = '<b>The question has been added!</b>\n\n Log in <i>/faq</i> to see the changes'
 
     faq_questions = '<b>Available questions</b>'
+    faq_category = '<b>Available categories</b>'
 
     # Admin Start Msg
     admin_start_current = '<b>Current start message:</b>'

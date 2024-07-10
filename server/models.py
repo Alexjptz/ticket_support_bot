@@ -2,7 +2,7 @@
 from sqladmin import ModelView
 
 # Project
-from database import UserModel, TicketModel, PreferenceModel
+from database import UserModel, TicketModel, PreferenceModel, CategoryModel, QuestionModel
 
 
 class UserView(ModelView, model=UserModel):
@@ -44,7 +44,7 @@ class TicketView(ModelView, model=TicketModel):
         TicketModel.id: 'ID тикета',
         TicketModel.user_id: 'ID пользователя',
         TicketModel.manager_id: 'ID менеджера',
-        TicketModel.manager_username: 'Имя менеджера', # вид имени в админке
+        TicketModel.manager_username: 'Имя менеджера',
         TicketModel.username: 'Имя пользователя',
         TicketModel.tg_name: 'Telegram имя',
         TicketModel.open_date: 'Дата открытия',
@@ -59,7 +59,7 @@ class TicketView(ModelView, model=TicketModel):
         TicketModel.id,
         TicketModel.user_id,
         TicketModel.manager_id,
-        TicketModel.manager_username, # дополняю колонку именем менеджера
+        TicketModel.manager_username,
         TicketModel.username,
         TicketModel.tg_name,
         TicketModel.open_date,
@@ -75,7 +75,7 @@ class TicketView(ModelView, model=TicketModel):
         TicketModel.user_id,
         TicketModel.username,
         TicketModel.tg_name,
-        TicketModel.manager_username, # поиск по имени менеджера
+        TicketModel.manager_username,
     ]
 
 
@@ -93,4 +93,49 @@ class PreferenceView(ModelView, model=PreferenceModel):
     column_sortable_list = column_list
     column_searchable_list = [
         PreferenceModel.key,
+    ]
+
+
+class CategoryView(ModelView, model=CategoryModel):
+    name = 'Категория'
+    name_plural = 'Категории'
+    column_labels = {
+        CategoryModel.id: 'ключ',
+        CategoryModel.name: 'название',
+        CategoryModel.description: 'описание',
+    }
+    column_list = [
+        CategoryModel.id,
+        CategoryModel.name,
+        CategoryModel.description,
+    ]
+    column_sortable_list = column_list
+    column_searchable_list = [
+        CategoryModel.name,
+        CategoryModel.id,
+    ]
+
+
+class QuestionView(ModelView, model=QuestionModel):
+    name = 'Вопрос'
+    name_plural = 'Вопросы'
+    column_labels = {
+        QuestionModel.id: 'Ключ',
+        QuestionModel.category_id: 'Категория',
+        QuestionModel.name: 'Вопрос',
+        QuestionModel.answer: 'Ответ',
+        QuestionModel.image_url: 'Медиа'
+    }
+    column_list = [
+        QuestionModel.id,
+        QuestionModel.category_id,
+        QuestionModel.name,
+        QuestionModel.answer,
+        QuestionModel.image_url,
+    ]
+    column_sortable_list = column_list
+    column_searchable_list = [
+        QuestionModel.name,
+        QuestionModel.id,
+        QuestionModel.category_id,
     ]

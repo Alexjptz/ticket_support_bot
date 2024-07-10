@@ -1,10 +1,11 @@
+# Standard
+from uuid import uuid4
+
 # Third-party
 from sqlalchemy import *
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
 from sqlalchemy.types import PickleType
-
-# Standard
-from uuid import uuid4
 
 # Project
 from translations import Language
@@ -36,7 +37,7 @@ class TicketModel(base):
     id = Column(BigInteger, primary_key=True)
     user_id = Column(BigInteger)
     manager_id = Column(BigInteger, default=None)
-    manager_username = Column(String) # добавить колонку о менеджере
+    manager_username = Column(String)
     username = Column(String)
     tg_name = Column(String)
     open_date = Column(DateTime)
@@ -52,3 +53,29 @@ class PreferenceModel(base):
     __tablename__ = 'Preferences'
     key = Column(String, primary_key=True)
     value = Column(PickleType, default={})
+
+
+class CategoryModel(base):
+    __tablename__ = 'categories'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    description = Column(String)
+
+    questions = relationship('QuestionModel', back_populates='category')
+
+    def __repr__(self):
+        return f'<{self.id}, {self.name}, {self.description})>'
+
+
+class QuestionModel(base):
+    __tablename__ = 'questions'
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String)
+    answer = Column(String)
+    image_url = Column(String)
+    category_id = Column(Integer, ForeignKey('categories.id'))
+
+    category = relationship('CategoryModel', back_populates='questions')
+
+    def __repr__(self):
+        return f'<{self.category.name}, {self.name}, {self.answer}>'
