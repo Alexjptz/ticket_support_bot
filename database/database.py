@@ -4,18 +4,20 @@ from sqlalchemy import *
 from sqlalchemy.orm import sessionmaker
 
 # Standard
-from time import sleep
-import traceback
-from enum import Enum
-from datetime import datetime, timezone, timedelta
 import os
 import shutil
+import traceback
+from datetime import datetime, timedelta, timezone
+from enum import Enum
+from time import sleep
 
 # Project
 import config as cf
 from logger import database_logger
-from .models import (base, UserModel, TicketModel, PreferenceModel,
-                     CategoryModel, QuestionModel)
+from translations import strs
+
+from .models import (CategoryModel, PreferenceModel, QuestionModel,
+                     TicketModel, UserModel, base)
 
 
 # Enum for different types of database connections
@@ -45,6 +47,9 @@ class Database:
                 self.categories = self.Category(
                     session_maker=self.session_maker
                     )
+                self.questions = self.Question(
+                    session_maker=self.session_maker
+                )
 
                 database_logger.info('Connected to database')
                 break
@@ -483,7 +488,6 @@ class Database:
                 session.commit()
                 session.close()
 
-
     class Question:
         def __init__(self, session_maker):
             self.session_maker = session_maker
@@ -509,6 +513,26 @@ class Database:
                     return data
                 else:
                     database_logger.info('No QuestionModels in a database')
+                    return None
+
+        async def get_all_by_id(
+            self, category_id: str | int
+        ) -> QuestionModel | None:
+            with self.session_maker() as session:
+                data = session.query(QuestionModel).filter_by(
+                category_id=category_id
+                ).all()
+                if data:
+                    database_logger.info(
+                        f'Questions by {category_id} are retrieved from database'
+                    )
+                    session.close()
+                    return data
+                else:
+                    database_logger.info(
+                        f'No questions by category {category_id} in database'
+                    )
+                    session.close()
                     return None
 
         async def get_by_id(
@@ -557,14 +581,35 @@ class Database:
                 session.commit()
                 session.close()
 
+
 db = Database(type_=Type.POSTGRESQL)
 
 
 async def generate_start_data():
-    from translations import strs
-    # faq = PreferenceModel()
-    # faq.key = 'faq'
-    # faq.value = {'questions': []}
+
+    check_categories = await db.categories.get_all()
+    if not check_categories:
+        for category_id in range(1, 4):
+            category_name = f'Категория {category_id}'
+            category_description = (
+                f'Описание {category_id}'
+                )
+            new_category = CategoryModel(
+                name=category_name,
+                description=category_description,
+            )
+            new_category_id = await db.categories.insert(new_category)
+            for q in range(1, 3):
+                question_name = f'Вопрос {q}'
+                question_answer = (
+                    f'Ответ на вопрос {q} в категории {category_id}'
+                    )
+                new_question = QuestionModel(
+                    category_id=new_category_id,
+                    name=question_name,
+                    answer=question_answer,
+                )
+                await db.questions.insert(new_question)
 
     channel_info = PreferenceModel()
     channel_info.key = 'channel_info'
@@ -586,10 +631,6 @@ async def generate_start_data():
     auto_close = PreferenceModel()
     auto_close.key = 'close_hours'
     auto_close.value = {'hours': 36}
-
-    # faq_data = await db.preferences.get_by_key(key='faq')
-    # if not faq_data:
-    #     await db.preferences.insert(preference=faq)
 
     channel_data = await db.preferences.get_by_key(key='channel_info')
     if not channel_data:

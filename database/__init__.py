@@ -1,2 +1,3 @@
 from .database import db, generate_start_data
-from .models import UserModel, TicketModel, PreferenceModel, CategoryModel, QuestionModel
+from .models import (CategoryModel, PreferenceModel, QuestionModel,
+                     TicketModel, UserModel)

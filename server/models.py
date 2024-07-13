@@ -2,7 +2,8 @@
 from sqladmin import ModelView
 
 # Project
-from database import UserModel, TicketModel, PreferenceModel, CategoryModel, QuestionModel
+from database import (CategoryModel, PreferenceModel, QuestionModel,
+                      TicketModel, UserModel)
 
 
 class UserView(ModelView, model=UserModel):

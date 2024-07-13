@@ -1,5 +1,6 @@
 from database.models import CategoryModel, QuestionModel
 from . import *
+from .general import get_menu_reply_keyboard
 
 # Standard
 from uuid import uuid4
@@ -29,6 +30,32 @@ class FaqStates(StatesGroup):
 
 
 # __buttons__ !DO NOT DELETE!
+async def get_questions_menu_inline_keyboard(
+    lang: str, category_id: int, is_admin: bool=False
+    ) -> InlineKeyboardMarkup:
+    button_rows = []
+
+    questions = await db.questions.get_all_by_id(category_id)
+    if questions:
+        for question in questions:
+            question_id = question.id
+            question_name = question.name
+            button_rows.append(
+                [InlineKeyboardButton(
+                    text=str(question_name),
+                    callback_data=f'question {question_id} {int(is_admin)}'
+                    )]
+            )
+    if is_admin:
+        button_rows.append(
+            [InlineKeyboardButton(
+                text=strs(lang=lang).add_question_btn,
+                callback_data='add_question_btn'
+                )]
+        )
+    keyboard = InlineKeyboardMarkup(inline_keyboard=button_rows)
+    return keyboard
+
 async def get_categories_menu_inline_keyboard(
     lang: str, is_admin: bool = False
     ) -> InlineKeyboardMarkup:
@@ -40,31 +67,41 @@ async def get_categories_menu_inline_keyboard(
             category_id = category.id
             category_name = category.name
             button_list.append(
-                [InlineKeyboardButton(text=category_name, callback_data=f'category {category_id} {int(is_admin)}')]
+                [InlineKeyboardButton(
+                    text=str(category_name),
+                    callback_data=f'category {category_id} {int(is_admin)}'
+                    )]
             )
 
     if is_admin:
         button_list.append(
-            [InlineKeyboardButton(text=strs(lang=lang).add_btn, callback_data='add_btn')]
+            [InlineKeyboardButton(
+                text=strs(lang=lang).add_category_btn,
+                callback_data='add_category_btn'
+                )]
         )
 
-    @faq_router.callback_query(F.data.startswith('add_btn'))
+    @faq_router.callback_query(F.data.startswith('add_category_btn'))
     async def handle_add_button_callback(
-        callback: CallbackQuery, state: FSMContext
-        ):
+        callback: CallbackQuery,
+        state: FSMContext):
         bot_logger.info(
-            f'Handling question add button callback from user {callback.message.chat.id}'
+            f'Handling category add button callback from user {callback.message.chat.id}'
             )
         from . import get_decline_reply_keyboard
 
         await callback.message.answer(
-            text=strs(lang=(await state.get_data())['lang']).faq_ask_category,
-            reply_markup=await get_decline_reply_keyboard(lang=(await state.get_data())['lang'])
+            text=strs(
+                lang=(await state.get_data())['lang']
+                ).faq_ask_category,
+            reply_markup=await get_decline_reply_keyboard(
+                lang=(await state.get_data())['lang']
+                )
         )
 
         await state.set_state(CategoryStates.get_category)
         await callback.message.delete()
-        # await callback.answer() - не понял о чем это
+        # await callback.answer()
 
     @faq_router.message(CategoryStates.get_category)
     async def handle_add_category_name(message: Message, state: FSMContext):
@@ -94,7 +131,9 @@ async def get_categories_menu_inline_keyboard(
 
     @faq_router.message(CategoryStates.get_content)
     async def handle_add_category_content(message: Message, state: FSMContext):
-        bot_logger.info(f'Handling states UpdateStates.get_question from user {message.chat.id}')
+        bot_logger.info(
+            f'Handling states UpdateStates.get_question from user {message.chat.id}'
+            )
         category_content = message.text
 
         # Сохранение описания категории в состоянии
@@ -108,27 +147,67 @@ async def get_categories_menu_inline_keyboard(
         )
         await db.categories.insert(new_category)
 
-        from .general import get_menu_reply_keyboard
+        # from .general import get_menu_reply_keyboard
         await message.answer(
             text=strs(lang=(await state.get_data())['lang']).data_update,
             reply_markup=await get_menu_reply_keyboard(lang=(await state.get_data())['lang'])
         )
         await state.clear()
 
+    @faq_router.callback_query(F.data.startswith('category'))
+    async def handle_category_button_callback(
+        callback: CallbackQuery,
+        state: FSMContext
+        ):
+        bot_logger.info(
+            f'Handling category button callback from user {callback.message.chat.id}'
+            )
+        data = callback.data.split()
+        category_id, is_admin = int(data[1]), bool(int(data[2]))
+
+        category = await db.categories.get_by_id(category_id)
+
+        if category:
+            description = category.description
+            await callback.message.delete()
+            await callback.message.answer(
+                str(description),
+                reply_markup=await get_questions_menu_inline_keyboard(
+                    lang=(await state.get_data())['lang'],
+                    category_id=category_id,
+                    is_admin=is_admin
+                    )
+                )
+            await callback.answer()
+        else:
+            await callback.answer(
+                'Категория не найдена. Перезапустите бота',
+                show_alert=True,
+            )
+
+        # message = Message(**description)
+        # await message.send_copy(
+        #     chat_id=callback.message.chat.id,
+        #     reply_markup=await get_questions_details_inline_keyboard(
+        #         lang=(await state.get_data())['lang'], questions=questions, is_admin=is_admin
+        #     )
+        # ).as_(callback.bot)
+        # await callback.answer()
     return InlineKeyboardMarkup(inline_keyboard=button_list)
 
 
-
-# async def get_faq_details_inline_keyboard(lang: str, category_id: str, is_admin: bool) -> InlineKeyboardMarkup:
+# async def get_category_details_inline_keyboard(
+#     lang: str, category_id: str, is_admin: bool
+#     ) -> InlineKeyboardMarkup:
 #     button_list = []
 #     if is_admin:
 #         button_list.append(
-#             [InlineKeyboardButton(text=strs(lang=lang).update_btn_category, callback_data=f'update_btn question {category_id_id}'),
+#             [InlineKeyboardButton(text=strs(lang=lang).update_btn_category, callback_data=f'update_btn question {category_id}'),
 #              InlineKeyboardButton(text=strs(lang=lang).update_btn_category_content, callback_data=f'update_btn content {category_id}')],
 #         )
 #         button_list.append(
-#             [InlineKeyboardButton(text=strs(lang=lang).remove_btn, callback_data=f'remove_btn {question_id} {int(is_admin)}'),
-#              InlineKeyboardButton(text=strs(lang=lang).update_btn, callback_data=f'question_update {question_id} {int(is_admin)}')]
+#             [InlineKeyboardButton(text=strs(lang=lang).remove_btn, callback_data=f'remove_btn {category_id} {int(is_admin)}'),
+#              InlineKeyboardButton(text=strs(lang=lang).update_btn, callback_data=f'question_update {category_id} {int(is_admin)}')]
 #         )
 #     button_list.append(
 #         [InlineKeyboardButton(text=strs(lang=lang).back_btn, callback_data=f'back_btn {int(is_admin)}')],
@@ -256,28 +335,13 @@ async def get_categories_menu_inline_keyboard(
     #     ).as_(callback.bot)
     #     await callback.answer()
 
-    # @faq_router.callback_query(F.data.startswith('add_btn'))
-    # async def handle_add_button_callback(callback: CallbackQuery, state: FSMContext):
-    #     bot_logger.info(f'Handling question add button callback from user {callback.message.chat.id}')
-    #     from . import get_decline_reply_keyboard
-
-    #     await callback.message.answer(
-    #         text=strs(lang=(await state.get_data())['lang']).faq_ask_question,
-    #         reply_markup=await get_decline_reply_keyboard(lang=(await state.get_data())['lang'])
-    #     )
-
-    #     await state.set_state(CategoryStates.get_category.state)
-    #     await callback.answer()
-
-    # return InlineKeyboardMarkup(inline_keyboard=button_list)
-
-
 # __chat__ !DO NOT DELETE!
 @general_router.message(
     filters.Private(),
     ((F.text == '/change_faq') | (F.text.in_(change_faq_btn)) |
      (F.text.in_(faq_btn)) | (F.text == '/faq'))
 )
+
 async def handle_faq_command(message: Message, state: FSMContext):
     bot_logger.info(f'Handling command /faq from user {message.chat.id}')
     user = await db.users.get_by_id(user_id=message.chat.id)
@@ -285,8 +349,11 @@ async def handle_faq_command(message: Message, state: FSMContext):
     lang = (await state.get_data())['lang']
     await message.answer(
         text=strs(lang=lang).faq_category,
-        reply_markup=await get_categories_menu_inline_keyboard(lang=lang, is_admin=is_admin)
-    )
+        reply_markup=await get_categories_menu_inline_keyboard(
+            lang=lang,
+            is_admin=is_admin
+            )
+        )
 
 
 # """ПОУЧЕНИЯ КАТЕГОРИИ"""

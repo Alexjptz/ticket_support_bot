@@ -28,10 +28,6 @@ change_faq_btn = [
     RuTranslation.change_faq_btn,
     EnTranslation.change_faq_btn
     ]
-change_category_btn = [
-    RuTranslation.change_category_btn,
-    EnTranslation.change_category_btn
-    ]
 faq_btn = [
     RuTranslation.faq_btn,
     EnTranslation.faq_btn
