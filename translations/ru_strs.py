@@ -9,7 +9,7 @@ class RuTranslation:
     notification_btn_off = 'Выключить уведомления 🔇'
     update_btn_category = 'Обновить категорию'
     update_btn_question = 'Обновить вопрос ❓'
-    update_btn_category_content = 'Обновить контент 📝'
+    update_btn_category_description = 'Обновить описание 📝'
     update_btn_content = 'Обновить контент 📝'
     remove_btn = 'Удалить 🗑️'
     update_btn = 'Обновить 🔄'

@@ -9,7 +9,7 @@ class EnTranslation:
     notification_btn_off = 'Turn off notifications 🔇'
     update_btn_category = 'Update the category'
     update_btn_question = 'Update the question ❓'
-    update_btn_category_content = 'Update Content 📝'
+    update_btn_category_description = 'Update Description 📝'
     update_btn_content = 'Update content 📝'
     remove_btn = 'Delete 🗑️'
     update_btn = 'Update 🔄'
