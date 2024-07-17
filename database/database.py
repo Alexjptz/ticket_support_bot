@@ -520,7 +520,7 @@ class Database:
         ) -> QuestionModel | None:
             with self.session_maker() as session:
                 data = session.query(QuestionModel).filter_by(
-                category_id=category_id
+                    category_id=category_id
                 ).all()
                 if data:
                     database_logger.info(

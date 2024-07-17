@@ -2,18 +2,13 @@ from database.models import CategoryModel, QuestionModel
 from . import *
 from .general import get_menu_reply_keyboard
 
-# Standard
-from uuid import uuid4
-from json import loads, dumps
-from handlers.utils import CustomJSONEncoder
-
 # __router__ !DO NOT DELETE!
 faq_router = Router()
 
 
 # __states__ !DO NOT DELETE!
 class UpdateStates(StatesGroup):
-    get_category = State() # отлавливает категорию
+    get_category = State()  # отлавливает категорию
     get_question = State()
     get_content = State()
 
@@ -168,12 +163,13 @@ async def get_categories_menu_inline_keyboard(
 
     return InlineKeyboardMarkup(inline_keyboard=button_list)
 
-async def get_questions_menu_inline_keyboard(
-    lang: str, category_id: int,
-    is_admin: bool = False
-    ) -> InlineKeyboardMarkup:
-    button_list = []
 
+async def get_questions_menu_inline_keyboard(
+        lang: str, category_id: int,
+        is_admin: bool = False
+    ) -> InlineKeyboardMarkup:
+
+    button_list = []
     questions = await db.questions.get_all_by_id(category_id)
     if questions:
         for question in questions:
@@ -196,7 +192,8 @@ async def get_questions_menu_inline_keyboard(
     @faq_router.callback_query(F.data.startswith('question'))
     async def handle_question_button_callback(
         callback: CallbackQuery,
-        state: FSMContext):
+        state: FSMContext
+    ):
         bot_logger.info(f'Handling question button callback from user {callback.message.chat.id}')
         data = callback.data.split()
         question_id = int(data[1])
@@ -219,7 +216,9 @@ async def get_questions_menu_inline_keyboard(
         state: FSMContext):
         bot_logger.info(
             f'Handling question add button callback from user {callback.message.chat.id}'
-            )
+        )
+
+        # todo fix import
         from . import get_decline_reply_keyboard
 
         data = callback.data.split()
@@ -241,7 +240,8 @@ async def get_questions_menu_inline_keyboard(
     @faq_router.message(QuestionStates.get_question)
     async def handle_add_question_name(
         message: Message,
-        state: FSMContext):
+        state: FSMContext
+    ):
         bot_logger.info(
             f'Handling states QuestionStates.get_question_name from user {message.chat.id}'
             )
@@ -258,10 +258,11 @@ async def get_questions_menu_inline_keyboard(
     @faq_router.message(QuestionStates.get_content)
     async def handle_add_question_answer(
         message: Message,
-        state: FSMContext):
+        state: FSMContext,
+    ):
         bot_logger.info(
             f'Handling states UpdateStates.get_question from user {message.chat.id}'
-            )
+        )
         question_content = message.text
 
         await state.update_data(question_content=question_content)
@@ -288,16 +289,6 @@ async def get_questions_menu_inline_keyboard(
     return InlineKeyboardMarkup(inline_keyboard=button_list)
 
 
-#         # await message.send_copy(
-#         #     chat_id=callback.message.chat.id,
-#         #     reply_markup=await get_questions_details_inline_keyboard(
-#         #         lang=(await state.get_data())['lang'], questions=questions, is_admin=is_admin
-#         #     )
-#         # ).as_(callback.bot)
-
-
-
-
 # async def get_category_details_inline_keyboard(
 #     lang: str, category_id: str, is_admin: bool
 #     ) -> InlineKeyboardMarkup:
@@ -314,17 +305,17 @@ async def get_questions_menu_inline_keyboard(
 #     button_list.append(
 #         [InlineKeyboardButton(text=strs(lang=lang).back_btn, callback_data=f'back_btn {int(is_admin)}')],
 #     )
-
+#
 #     @faq_router.callback_query(F.data.startswith('question_update'))
 #     async def handle_question_update_button_callback(callback: CallbackQuery, state: FSMContext):
 #         bot_logger.info(f'Handling faq_details question update button callback from user {callback.message.chat.id}')
 #         data = callback.data.split()
 #         question_id, is_admin = data[1], bool(int(data[2]))
-
+#
 #         faq = await db.preferences.get_by_key(key='faq')
 #         questions = faq.value.get('questions')
 #         question = [question for question in questions if question['question_id'] == question_id][0]
-
+#
 #         await callback.message.delete()
 #         message = Message(**question['content'])
 #         await message.send_copy(
@@ -333,15 +324,15 @@ async def get_questions_menu_inline_keyboard(
 #                 lang=(await state.get_data())['lang'], question_id=question_id, is_admin=is_admin
 #             )
 #         ).as_(callback.bot)
-
+#
 #         await callback.answer()
-
+#
 #     @faq_router.callback_query(F.data.startswith('update_btn'))
 #     async def handle_update_button_callback(callback: CallbackQuery, state: FSMContext):
 #         bot_logger.info(f'Handling faq_details update button callback from user {callback.message.chat.id}')
 #         data = callback.data.split()
 #         action, question_id = data[1], data[2]
-
+#
 #         await state.update_data({'question_id': question_id})
 #         if action == 'question':
 #             await callback.message.answer(text=strs(lang=(await state.get_data())['lang']).faq_ask_question)
@@ -349,15 +340,15 @@ async def get_questions_menu_inline_keyboard(
 #         elif action == 'content':
 #             await callback.message.answer(text=strs(lang=(await state.get_data())['lang']).faq_ask_content)
 #             await state.set_state(UpdateStates.get_content.state)
-
+#
 #         await callback.answer()
-
+#
 #     @faq_router.callback_query(F.data.startswith('remove_btn'))
 #     async def handle_remove_button_callback(callback: CallbackQuery, state: FSMContext):
 #         bot_logger.info(f'Handling faq_details remove button callback from user {callback.message.chat.id}')
 #         data = callback.data.split()
 #         question_id, is_admin = data[1], bool(int(data[2]))
-
+#
 #         faq = await db.preferences.get_by_key(key='faq')
 #         questions = faq.value.get('questions')
 #         remove_idx = -1
@@ -366,30 +357,30 @@ async def get_questions_menu_inline_keyboard(
 #                 remove_idx = idx
 #         if remove_idx >= 0:
 #             del questions[remove_idx]
-
+#
 #         faq.value['questions'] = questions
 #         await db.preferences.update(preference=faq)
-
+#
 #         await callback.message.delete()
 #         await callback.message.answer(
 #             text=strs(lang=(await state.get_data())['lang']).faq_questions,
 #             reply_markup=await get_faq_menu_inline_keyboard(lang=(await state.get_data())['lang'], is_admin=is_admin)
 #         )
 #         await callback.answer()
-
+#
 #     @faq_router.callback_query(F.data.startswith('back_btn'))
 #     async def handle_back_button_callback(callback: CallbackQuery, state: FSMContext):
 #         bot_logger.info(f'Handling faq_details back button callback from user {callback.message.chat.id}')
 #         data = callback.data.split()
 #         is_admin = bool(int(data[1]))
-
+#
 #         await callback.message.delete()
 #         await callback.message.answer(
 #             text=strs(lang=(await state.get_data())['lang']).faq_questions,
 #             reply_markup=await get_faq_menu_inline_keyboard(lang=(await state.get_data())['lang'], is_admin=is_admin)
 #         )
 #         await callback.answer()
-
+#
 #     return InlineKeyboardMarkup(inline_keyboard=button_list)
 
 
@@ -443,7 +434,6 @@ async def get_questions_menu_inline_keyboard(
     ((F.text == '/change_faq') | (F.text.in_(change_faq_btn)) |
      (F.text.in_(faq_btn)) | (F.text == '/faq'))
 )
-
 async def handle_faq_command(message: Message, state: FSMContext):
     bot_logger.info(f'Handling command /faq from user {message.chat.id}')
     user = await db.users.get_by_id(user_id=message.chat.id)
