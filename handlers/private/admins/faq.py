@@ -2,11 +2,6 @@ from database.models import CategoryModel, QuestionModel
 from . import *
 from .general import get_menu_reply_keyboard
 
-# Standard
-from uuid import uuid4
-from json import loads, dumps
-from handlers.utils import CustomJSONEncoder
-
 # __router__ !DO NOT DELETE!
 faq_router = Router()
 
@@ -172,12 +167,13 @@ async def get_categories_menu_inline_keyboard(
 
     return InlineKeyboardMarkup(inline_keyboard=button_list)
 
-async def get_questions_menu_inline_keyboard(
-    lang: str, category_id: int,
-    is_admin: bool = False
-    ) -> InlineKeyboardMarkup:
-    button_list = []
 
+async def get_questions_menu_inline_keyboard(
+        lang: str, category_id: int,
+        is_admin: bool = False
+    ) -> InlineKeyboardMarkup:
+
+    button_list = []
     questions = await db.questions.get_all_by_id(category_id)
     if questions:
         for question in questions:
@@ -210,7 +206,8 @@ async def get_questions_menu_inline_keyboard(
     @faq_router.callback_query(F.data.startswith('question'))
     async def handle_question_button_callback(
         callback: CallbackQuery,
-        state: FSMContext):
+        state: FSMContext
+    ):
         bot_logger.info(f'Handling question button callback from user {callback.message.chat.id}')
         data = callback.data.split()
         question_id, is_admin, category_id = (
@@ -309,7 +306,8 @@ async def get_questions_menu_inline_keyboard(
     @faq_router.message(QuestionStates.get_question)
     async def handle_add_question_name(
         message: Message,
-        state: FSMContext):
+        state: FSMContext
+    ):
         bot_logger.info(
             f'Handling states QuestionStates.get_question_name from user {message.chat.id}'
             )
@@ -326,10 +324,11 @@ async def get_questions_menu_inline_keyboard(
     @faq_router.message(QuestionStates.get_content)
     async def handle_add_question_answer(
         message: Message,
-        state: FSMContext):
+        state: FSMContext,
+    ):
         bot_logger.info(
             f'Handling states UpdateStates.get_question from user {message.chat.id}'
-            )
+        )
         question_content = message.text
 
         await state.update_data(question_content=question_content)
@@ -810,7 +809,6 @@ async def get_category_details_inline_keyboard(
     ((F.text == '/change_faq') | (F.text.in_(change_faq_btn)) |
      (F.text.in_(faq_btn)) | (F.text == '/faq'))
 )
-
 async def handle_faq_command(message: Message, state: FSMContext):
     bot_logger.info(f'Handling command /faq from user {message.chat.id}')
     user = await db.users.get_by_id(user_id=message.chat.id)
