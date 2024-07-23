@@ -7,19 +7,9 @@ faq_router = Router()
 
 
 # __states__ !DO NOT DELETE!
-class UpdateStates(StatesGroup):
+class QuestionUpdateStates(StatesGroup):
     get_category = State()
     get_question = State()
-    get_content = State()
-
-
-class CategoryUpdateStates(StatesGroup):
-    get_category = State()
-    get_content = State()
-
-
-class CategoryStates(StatesGroup):
-    get_category = State()
     get_content = State()
 
 
@@ -29,21 +19,31 @@ class QuestionStates(StatesGroup):
     get_content = State()
 
 
+class CategoryStates(StatesGroup):
+    get_category = State()
+    get_content = State()
+
+
+class CategoryUpdateStates(StatesGroup):
+    get_category = State()
+    get_content = State()
+
+
 # __buttons__ !DO NOT DELETE!
 async def get_categories_menu_inline_keyboard(
-    lang: str, is_admin: bool = False
-    ) -> InlineKeyboardMarkup:
+    lang: str,
+    is_admin: bool = False
+) -> InlineKeyboardMarkup:
     button_list = []
 
     categories = await db.categories.get_all()
+
     if categories:
         for category in categories:
-            category_id = category.id
-            category_name = category.name
             button_list.append(
                 [InlineKeyboardButton(
-                    text=str(category_name),
-                    callback_data=f'category {category_id} {int(is_admin)}'
+                    text=str(category.name),
+                    callback_data=f'category {category.id} {int(is_admin)}'
                     )]
             )
 
@@ -51,26 +51,31 @@ async def get_categories_menu_inline_keyboard(
         button_list.append(
             [InlineKeyboardButton(
                 text=strs(lang=lang).add_category_btn,
-                callback_data='add_category_btn'
+                callback_data=f'add_category_btn {int(is_admin)}'
                 )]
         )
 
     @faq_router.callback_query(F.data.startswith('add_category_btn'))
     async def handle_add_category_button_callback(
         callback: CallbackQuery,
-        state: FSMContext):
+        state: FSMContext
+    ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling category add button callback from user {callback.message.chat.id}'
-            )
+            f'Handling category add button callback from user {chat_id}'
+        )
         from . import get_decline_reply_keyboard
 
+        data = callback.data.split()
+        is_admin = bool(int(data[1]))
+
+        lang = (await state.get_data())['lang']
+
+        await state.update_data(is_admin=is_admin)
+
         await callback.message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-                ).faq_ask_category,
-            reply_markup=await get_decline_reply_keyboard(
-                lang=(await state.get_data())['lang']
-                )
+            text=strs(lang=lang).faq_ask_category,
+            reply_markup=await get_decline_reply_keyboard(lang=lang)
         )
 
         await state.set_state(CategoryStates.get_category)
@@ -80,42 +85,41 @@ async def get_categories_menu_inline_keyboard(
     @faq_router.message(CategoryStates.get_category)
     async def handle_add_category_name(
         message: Message,
-        state: FSMContext):
+        state: FSMContext
+    ):
         bot_logger.info(
             f'Handling states CategoryStates.get_category_name from user {message.chat.id}'
             )
         category_name = message.text.strip()
+        data = await state.get_data()
+        lang = data['lang']
 
-        existing_category = await db.categories.get_by_name(category_name)
-        if existing_category:
+        if await db.categories.get_by_name(category_name):
             await message.answer(
-                text=strs(
-                    lang=(await state.get_data())['lang']
-                    ).faq_category_exist
-                )
-            return
-
-        await state.update_data(category_name=category_name)
-        await message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-                ).faq_ask_content
+                text=strs(lang=lang).faq_category_exist
             )
-        await state.set_state(CategoryStates.get_content)
+        else:
+            await state.update_data(category_name=category_name)
+            await message.answer(
+                text=strs(lang=lang).faq_ask_content
+            )
+            await state.set_state(CategoryStates.get_content)
 
     @faq_router.message(CategoryStates.get_content)
     async def handle_add_category_content(
         message: Message,
-        state: FSMContext):
+        state: FSMContext
+    ):
         bot_logger.info(
             f'Handling states UpdateStates.get_question from user {message.chat.id}'
             )
         category_content = message.text
 
-        await state.update_data(category_content=category_content)
         data = await state.get_data()
         category_name = data['category_name']
-        category_content = data['category_content']
+        lang = data['lang']
+        is_admin = data['is_admin']
+
         new_category = CategoryModel(
             name=str(category_name),
             description=str(category_content),
@@ -123,8 +127,13 @@ async def get_categories_menu_inline_keyboard(
         await db.categories.insert(new_category)
 
         await message.answer(
-            text=strs(lang=(await state.get_data())['lang']).data_update,
-            reply_markup=await get_menu_reply_keyboard(lang=(await state.get_data())['lang'])
+            text=strs(lang=lang).data_update,
+            reply_markup=(
+                await get_categories_menu_inline_keyboard(
+                    lang=lang,
+                    is_admin=is_admin
+                )
+            )
         )
         await state.clear()
 
@@ -132,15 +141,18 @@ async def get_categories_menu_inline_keyboard(
     async def handle_category_button_callback(
         callback: CallbackQuery,
         state: FSMContext
-        ):
+    ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling category button callback from user {callback.message.chat.id}'
-            )
+            f'Handling category button callback from user {chat_id}'
+        )
+
         data = callback.data.split()
+        category_id, is_admin = int(data[1]), bool(int(data[2]))
+
+        lang = (await state.get_data())['lang']
 
         await callback.answer()
-
-        category_id, is_admin = int(data[1]), bool(int(data[2]))
 
         category = await db.categories.get_by_id(category_id)
 
@@ -150,7 +162,7 @@ async def get_categories_menu_inline_keyboard(
             await callback.message.answer(
                 str(description),
                 reply_markup=await get_questions_menu_inline_keyboard(
-                    lang=(await state.get_data())['lang'],
+                    lang=lang,
                     category_id=category_id,
                     is_admin=is_admin
                     )
@@ -158,30 +170,29 @@ async def get_categories_menu_inline_keyboard(
             await callback.answer()
         else:
             await callback.answer(
-                'Категория не найдена. Перезапустите бота',
+                'Категория не найдена.',
                 show_alert=True,
             )
 
     return InlineKeyboardMarkup(inline_keyboard=button_list)
 
-
 async def get_questions_menu_inline_keyboard(
-        lang: str, category_id: int,
-        is_admin: bool = False
-    ) -> InlineKeyboardMarkup:
-
+    lang: str, category_id: int,
+    is_admin: bool = False
+) -> InlineKeyboardMarkup:
     button_list = []
+
     questions = await db.questions.get_all_by_id(category_id)
+
     if questions:
         for question in questions:
-            question_id = question.id
-            question_name = question.name
             button_list.append([
                 InlineKeyboardButton(
-                    text=str(question_name),
-                    callback_data=f'question {question_id} {int(is_admin)} {category_id}'
+                    text=str(question.name),
+                    callback_data=f'question {question.id} {int(is_admin)} {category_id}'
                 )
             ])
+
     if is_admin:
         button_list.append([
             InlineKeyboardButton(
@@ -205,7 +216,11 @@ async def get_questions_menu_inline_keyboard(
         callback: CallbackQuery,
         state: FSMContext
     ):
-        bot_logger.info(f'Handling question button callback from user {callback.message.chat.id}')
+        chat_id = callback.message.chat.id
+        bot_logger.info(
+            f'Handling question button callback from user {chat_id}'
+        )
+
         data = callback.data.split()
         question_id, is_admin, category_id = (
             int(data[1]),
@@ -214,6 +229,7 @@ async def get_questions_menu_inline_keyboard(
         )
 
         question = await db.questions.get_by_id(question_id)
+
         if question:
             await callback.message.delete()
             answer = question.answer
@@ -233,40 +249,18 @@ async def get_questions_menu_inline_keyboard(
                 show_alert=True,
             )
 
-    @faq_router.callback_query(F.data.startswith('add_question_btn'))
-    async def handle_add_question_button_callback(
-        callback: CallbackQuery,
-        state: FSMContext):
-        bot_logger.info(
-            f'Handling question add button callback from user {callback.message.chat.id}'
-            )
-        from . import get_decline_reply_keyboard
-
-        data = callback.data.split()
-        category_id = int(data[1])
-
-        await callback.message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-                ).faq_ask_question,
-            reply_markup=await get_decline_reply_keyboard(
-                lang=(await state.get_data())['lang']
-                )
-        )
-        await state.update_data(category_id=category_id)
-        await state.set_state(QuestionStates.get_question)
-        await callback.message.delete()
-        await callback.answer()
-
     @faq_router.callback_query(F.data.startswith('back_to_categories_btn'))
     async def handle_back_to_categories_button_callback(
         callback: CallbackQuery,
-        state: FSMContext):
+        state: FSMContext
+    ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling back button callback from user {callback.message.chat.id}'
+            f'Handling back button callback from user {chat_id}'
         )
         data = callback.data.split()
         is_admin = bool(int(data[2]))
+
         await callback.message.delete()
         await callback.message.answer(
             text=strs(lang=lang).faq_category,
@@ -280,24 +274,53 @@ async def get_questions_menu_inline_keyboard(
     @faq_router.callback_query(F.data.startswith('edit_category_btn'))
     async def handle_edit_category_button_callback(
         callback: CallbackQuery,
-        state: FSMContext):
+        state: FSMContext
+    ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling back button callback from user {callback.message.chat.id}'
+            f'Handling back button callback from user {chat_id}'
         )
+
         data = callback.data.split()
         category_id, is_admin = int(data[1]), bool(int(data[2]))
+
         category = await db.categories.get_by_id(category_id)
-        description = category.description
 
         await callback.message.delete()
         await callback.message.answer(
-            text=str(description),
+            text=str(category.description),
             reply_markup=await get_category_details_inline_keyboard(
                 lang=lang,
                 category_id=category_id,
                 is_admin=is_admin
             )
         )
+        await callback.answer()
+
+    @faq_router.callback_query(F.data.startswith('add_question_btn'))
+    async def handle_add_question_button_callback(
+        callback: CallbackQuery,
+        state: FSMContext):
+        bot_logger.info(
+            f'Handling question add button callback from user {callback.message.chat.id}'
+            )
+        from . import get_decline_reply_keyboard
+
+        data = callback.data.split()
+        category_id = int(data[1])
+
+        lang = (await state.get_data())['lang']
+
+        await callback.message.answer(
+            text=strs(lang=lang).faq_ask_question,
+            reply_markup=await get_decline_reply_keyboard(lang=lang)
+        )
+        await state.update_data(
+            category_id=category_id,
+            is_admin=is_admin
+        )
+        await state.set_state(QuestionStates.get_question)
+        await callback.message.delete()
         await callback.answer()
 
     @faq_router.message(QuestionStates.get_question)
@@ -307,7 +330,7 @@ async def get_questions_menu_inline_keyboard(
     ):
         bot_logger.info(
             f'Handling states QuestionStates.get_question_name from user {message.chat.id}'
-            )
+        )
         question_name = message.text
 
         await state.update_data(question_name=question_name)
@@ -329,11 +352,13 @@ async def get_questions_menu_inline_keyboard(
         question_content = message.text
 
         await state.update_data(question_content=question_content)
+
         data = await state.get_data()
 
         question_name = data['question_name']
         question_content = data['question_content']
         category_id = data['category_id']
+        lang = data['lang']
 
         new_question = QuestionModel(
             category_id=int(category_id),
@@ -343,8 +368,12 @@ async def get_questions_menu_inline_keyboard(
         await db.questions.insert(new_question)
 
         await message.answer(
-            text=strs(lang=(await state.get_data())['lang']).data_update,
-            reply_markup=await get_menu_reply_keyboard(lang=(await state.get_data())['lang'])
+            text=strs(lang=lang).data_update,
+            reply_markup=await get_questions_menu_inline_keyboard(
+                lang=lang,
+                category_id=category_id,
+                is_admin=is_admin
+            )
         )
         await state.clear()
 
@@ -387,11 +416,13 @@ async def get_question_details_inline_keyboard(
         callback: CallbackQuery,
         state: FSMContext
     ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling faq_details back button callback from user {callback.message.chat.id}'
+            f'Handling faq_details back button callback from user {chat_id}'
         )
         data = callback.data.split()
         is_admin, category_id = bool(int(data[2])), int(data[3])
+
         category = await db.categories.get_by_id(category_id)
         description = str(category.description)
 
@@ -411,13 +442,20 @@ async def get_question_details_inline_keyboard(
         callback: CallbackQuery,
         state: FSMContext
     ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling question_details remove button callback from user {callback.message.chat.id}'
+            f'Handling question_details remove button callback from user {chat_id}'
         )
         data = callback.data.split()
-        question_id, is_admin, category_id = int(data[1]), bool(int(data[2])), int(data[3])
+        question_id, is_admin, category_id = (
+            int(data[1]),
+            bool(int(data[2])),
+            int(data[3])
+        )
+
         question = await db.questions.get_by_id(question_id)
         category = await db.categories.get_by_id(category_id)
+
         description = str(category.description)
 
         await db.questions.delete(question)
@@ -435,48 +473,49 @@ async def get_question_details_inline_keyboard(
     @faq_router.callback_query(F.data.startswith('update_question_btn'))
     async def handle_update_question_name_button_callback(
         callback: CallbackQuery,
-        state: FSMContext):
+        state: FSMContext
+    ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling update question name button callback from user {callback.message.chat.id}'
-            )
+            f'Handling update question name button callback from user {chat_id}'
+        )
         from . import get_decline_reply_keyboard
 
+        lang = (await state.get_data())['lang']
+
         data = callback.data.split()
-        question_id, is_admin, category_id = int(data[1]), bool(int(data[2])), int(data[3])
+        is_admin, category_id = bool(int(data[2])), int(data[3])
 
         await callback.message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).faq_ask_question,
-            reply_markup=await get_decline_reply_keyboard(
-                lang=(await state.get_data())['lang']
-            )
+            text=strs(lang=lang).faq_ask_question,
+            reply_markup=await get_decline_reply_keyboard(lang=lang)
         )
         await state.update_data(
             category_id=category_id,
             is_admin=is_admin,
         )
-        await state.set_state(UpdateStates.get_question)
+        await state.set_state(QuestionUpdateStates.get_question)
         await callback.message.delete()
 
-    @faq_router.message(UpdateStates.get_question)
+    @faq_router.message(QuestionUpdateStates.get_question)
     async def handle_update_get_question_state(
         message: Message,
-        state: FSMContext):
+        state: FSMContext
+    ):
         bot_logger.info(
             f'Handling states UpdateStates.get_question_name from user {message.chat.id}'
         )
+
         question_name = message.text
         data = await state.get_data()
         is_admin = bool(int(data['is_admin']))
+        lang = data['lang']
 
         await state.update_data(question_name=question_name)
         await message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).data_update,
+            text=strs(lang=lang).data_update,
             reply_markup=await get_question_details_inline_keyboard(
-                lang=(await state.get_data())['lang'],
+                lang=lang,
                 question_id=question_id,
                 category_id=category_id,
                 is_admin=is_admin
@@ -488,50 +527,47 @@ async def get_question_details_inline_keyboard(
         callback: CallbackQuery,
         state: FSMContext
     ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling update content question button callback from user {callback.message.chat.id}'
+            f'Handling update content question button callback from user {chat_id}'
             )
         from . import get_decline_reply_keyboard
 
         data = callback.data.split()
-        question_id, is_admin, category_id = (
-            int(data[1]),
-            bool(int(data[2])),
-            int(data[3])
-        )
+        is_admin, category_id = bool(int(data[2])), int(data[3])
+
+        lang = (await state.get_data())['lang']
+
         await callback.message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).faq_ask_content,
-            reply_markup=await get_decline_reply_keyboard(
-                lang=(await state.get_data())['lang']
-            )
+            text=strs(lang=lang).faq_ask_content,
+            reply_markup=await get_decline_reply_keyboard(lang=lang)
         )
         await state.update_data(
             category_id=category_id,
             is_admin=is_admin,
         )
-        await state.set_state(UpdateStates.get_content)
+        await state.set_state(QuestionUpdateStates.get_content)
 
-    @faq_router.message(UpdateStates.get_content)
+    @faq_router.message(QuestionUpdateStates.get_content)
     async def handle_update_get_question_content_state(
         message: Message,
         state: FSMContext
     ):
         bot_logger.info(
             f'Handling states UpdateStates.get_question_content from user {message.chat.id}'
-            )
+        )
+
         question_content = message.text
+
         data = await state.get_data()
         is_admin = bool(int(data['is_admin']))
+        lang = data['lang']
 
         await state.update_data(question_content=question_content)
         await message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).data_update,
+            text=strs(lang=lang).data_update,
             reply_markup=await get_question_details_inline_keyboard(
-                lang=(await state.get_data())['lang'],
+                lang=lang,
                 question_id=question_id,
                 category_id=category_id,
                 is_admin=is_admin
@@ -546,13 +582,16 @@ async def get_question_details_inline_keyboard(
         bot_logger.info(
             f'Handling update question from user {callback.message.chat.id}'
         )
+
         await callback.answer()
+
         state_data = await state.get_data()
         callback_data = callback.data.split()
         question_id = int(callback_data[1])
 
         question_name = state_data.get('question_name')
         question_answer = state_data.get('question_content')
+        lang = state_data['lang']
 
         update_data = {}
         if question_name is not None:
@@ -564,11 +603,9 @@ async def get_question_details_inline_keyboard(
             await db.questions.update(question_id, update_data)
             await callback.message.delete()
             await callback.message.answer(
-                text=strs(
-                    lang=(await state.get_data())['lang']
-                ).data_update,
+                text=strs(lang=lang).data_update,
                 reply_markup=await get_questions_menu_inline_keyboard(
-                    lang=(await state.get_data())['lang'],
+                    lang=lang,
                     category_id=category_id,
                     is_admin=is_admin
                 )
@@ -577,11 +614,9 @@ async def get_question_details_inline_keyboard(
         else:
             await callback.message.delete()
             await callback.message.answer(
-                text=strs(
-                    lang=(await state.get_data())['lang']
-                ).data_update_empty,
+                text=strs(lang=lang).data_update_empty,
                 reply_markup=await get_question_details_inline_keyboard(
-                    lang=(await state.get_data())['lang'],
+                    lang=lang,
                     question_id=question_id,
                     category_id=category_id,
                     is_admin=is_admin
@@ -595,6 +630,7 @@ async def get_category_details_inline_keyboard(
     lang: str, category_id: int, is_admin: bool
     ) -> InlineKeyboardMarkup:
     button_list = []
+
     if is_admin:
         button_list.append([
             InlineKeyboardButton(
@@ -622,16 +658,16 @@ async def get_category_details_inline_keyboard(
         )
     ],)
 
-
-    """МФункция работает не корректно"""
     @faq_router.callback_query(F.data.startswith('remove_category_btn'))
     async def handle_remove_category_button_callback(
         callback: CallbackQuery,
         state: FSMContext
     ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling category_details remove button callback from user {callback.message.chat.id}'
+            f'Handling category_details remove button callback from user {chat_id}'
         )
+
         data = callback.data.split()
         category_id, is_admin = int(data[1]), bool(int(data[2]))
 
@@ -651,21 +687,19 @@ async def get_category_details_inline_keyboard(
         callback: CallbackQuery,
         state: FSMContext
     ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling update category name button callback from user {callback.message.chat.id}'
+            f'Handling update category name button callback from user {chat_id}'
             )
         from . import get_decline_reply_keyboard
 
+        lang = (await state.get_data())['lang']
         data = callback.data.split()
         category_id, is_admin = int(data[1]), bool(int(data[2]))
 
         await callback.message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).faq_ask_category,
-            reply_markup=await get_decline_reply_keyboard(
-                lang=(await state.get_data())['lang']
-            )
+            text=strs(lang=lang).faq_ask_category,
+            reply_markup=await get_decline_reply_keyboard(lang=lang)
         )
         await state.update_data(
             category_id=category_id,
@@ -685,14 +719,13 @@ async def get_category_details_inline_keyboard(
         category_name = message.text
         data = await state.get_data()
         is_admin = bool(int(data['is_admin']))
+        lang = (await state.get_data())['lang']
 
         await state.update_data(category_name=category_name)
         await message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).data_update,
+            text=strs(lang=lang).data_update,
             reply_markup=await get_category_details_inline_keyboard(
-                lang=(await state.get_data())['lang'],
+                lang=lang,
                 category_id=category_id,
                 is_admin=is_admin
             )
@@ -703,20 +736,18 @@ async def get_category_details_inline_keyboard(
         callback: CallbackQuery,
         state: FSMContext
     ):
+        chat_id = callback.message.chat.id
         bot_logger.info(
-            f'Handling update category content button callback from user {callback.message.chat.id}'
+            f'Handling update category content button callback from user {chat_id}'
             )
         from . import get_decline_reply_keyboard
 
         data = callback.data.split()
         category_id, is_admin = int(data[1]), bool(int(data[2]))
+        lang = (await state.get_data())['lang']
         await callback.message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).faq_ask_content,
-            reply_markup=await get_decline_reply_keyboard(
-                lang=(await state.get_data())['lang']
-            )
+            text=strs(lang=lang).faq_ask_content,
+            reply_markup=await get_decline_reply_keyboard(lang=lang)
         )
         await state.update_data(
             category_id=category_id,
@@ -735,14 +766,13 @@ async def get_category_details_inline_keyboard(
         category_content = message.text
         data = await state.get_data()
         is_admin = bool(int(data['is_admin']))
+        lang = (await state.get_data())['lang']
 
         await state.update_data(category_content=category_content)
         await message.answer(
-            text=strs(
-                lang=(await state.get_data())['lang']
-            ).data_update,
+            text=strs(lang=lang).data_update,
             reply_markup=await get_category_details_inline_keyboard(
-                lang=(await state.get_data())['lang'],
+                lang=lang,
                 category_id=category_id,
                 is_admin=is_admin
             )
@@ -760,6 +790,7 @@ async def get_category_details_inline_keyboard(
         state_data = await state.get_data()
         callback_data = callback.data.split()
         category_id = int(callback_data[1])
+        lang = (await state.get_data())['lang']
 
         category_name = state_data.get('category_name')
         category_description = state_data.get('category_content')
@@ -774,9 +805,7 @@ async def get_category_details_inline_keyboard(
             await db.categories.update(category_id, update_data)
             await callback.message.delete()
             await callback.message.answer(
-                text=strs(
-                    lang=(await state.get_data())['lang']
-                ).data_update,
+                text=strs(lang=lang).data_update,
                 reply_markup=await get_categories_menu_inline_keyboard(
                     lang=lang,
                     is_admin=is_admin
@@ -786,11 +815,9 @@ async def get_category_details_inline_keyboard(
         else:
             await callback.message.delete()
             await callback.message.answer(
-                text=strs(
-                    lang=(await state.get_data())['lang']
-                ).data_update_empty,
+                text=strs(lang=lang).data_update_empty,
                 reply_markup=await get_category_details_inline_keyboard(
-                    lang=(await state.get_data())['lang'],
+                    lang=lang,
                     category_id=category_id,
                     is_admin=is_admin
                 )
@@ -806,6 +833,7 @@ async def get_category_details_inline_keyboard(
     ((F.text == '/change_faq') | (F.text.in_(change_faq_btn)) |
      (F.text.in_(faq_btn)) | (F.text == '/faq'))
 )
+
 async def handle_faq_command(message: Message, state: FSMContext):
     bot_logger.info(f'Handling command /faq from user {message.chat.id}')
     user = await db.users.get_by_id(user_id=message.chat.id)
