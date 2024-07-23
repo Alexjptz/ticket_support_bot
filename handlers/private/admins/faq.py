@@ -5,29 +5,24 @@ from .general import get_menu_reply_keyboard
 # __router__ !DO NOT DELETE!
 faq_router = Router()
 
-
 # __states__ !DO NOT DELETE!
 class QuestionUpdateStates(StatesGroup):
     get_category = State()
     get_question = State()
     get_content = State()
 
-
 class QuestionStates(StatesGroup):
     get_category = State()
     get_question = State()
     get_content = State()
 
-
 class CategoryStates(StatesGroup):
     get_category = State()
     get_content = State()
 
-
 class CategoryUpdateStates(StatesGroup):
     get_category = State()
     get_content = State()
-
 
 # __buttons__ !DO NOT DELETE!
 async def get_categories_menu_inline_keyboard(
@@ -825,7 +820,6 @@ async def get_category_details_inline_keyboard(
             await callback.answer()
 
     return InlineKeyboardMarkup(inline_keyboard=button_list)
-
 
 # __chat__ !DO NOT DELETE!
 @general_router.message(
