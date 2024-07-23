@@ -86,7 +86,6 @@ async def get_categories_menu_inline_keyboard(
             )
         category_name = message.text.strip()
 
-        # Проверка наличия категории в базе
         existing_category = await db.categories.get_by_name(category_name)
         if existing_category:
             await message.answer(
@@ -96,7 +95,6 @@ async def get_categories_menu_inline_keyboard(
                 )
             return
 
-        # Сохранение имени категории в состоянии
         await state.update_data(category_name=category_name)
         await message.answer(
             text=strs(
@@ -114,7 +112,6 @@ async def get_categories_menu_inline_keyboard(
             )
         category_content = message.text
 
-        # Сохранение описания категории в состоянии
         await state.update_data(category_content=category_content)
         data = await state.get_data()
         category_name = data['category_name']

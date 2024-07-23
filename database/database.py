@@ -466,7 +466,7 @@ class Database:
             with self.session_maker() as session:
                 session.query(CategoryModel).filter_by(
                     id=category_id
-                    ).destroy()
+                    ).delete()
                 database_logger.warning(
                     f'CategoryModel {category_id} is deleted!'
                     )

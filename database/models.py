@@ -78,9 +78,9 @@ class QuestionModel(base):
     name = Column(String)
     answer = Column(String)
     image_url = Column(String)
-    category_id = Column(Integer, ForeignKey('categories.id'))
+    category_id = Column(Integer, ForeignKey('categories.id', ondelete='CASCADE'))
 
-    category = relationship('CategoryModel', back_populates='questions', cascade='all, delete' )
+    category = relationship('CategoryModel', back_populates='questions')
 
     def __repr__(self):
         return f'<{self.category.name}, {self.name}, {self.answer}>'
