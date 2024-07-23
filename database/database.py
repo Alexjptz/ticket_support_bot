@@ -462,7 +462,7 @@ class Database:
                     session.close()
                     return None
 
-        async def delete(self, category_id: int | str): # было category: CategoryModel
+        async def delete(self, category_id: int | str):
             with self.session_maker() as session:
                 session.query(CategoryModel).filter_by(
                     id=category_id
@@ -581,6 +581,7 @@ class Database:
 db = Database(type_=Type.POSTGRESQL)
 
 
+"""Generate data for the first initiation of database"""
 async def generate_start_data():
 
     check_categories = await db.categories.get_all()
