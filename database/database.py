@@ -462,29 +462,27 @@ class Database:
                     session.close()
                     return None
 
-        async def delete(self, category: CategoryModel):
+        async def delete(self, category_id: int | str): # было category: CategoryModel
             with self.session_maker() as session:
                 session.query(CategoryModel).filter_by(
-                    key=category.id
-                    ).delete()
+                    id=category_id
+                    ).destroy()
                 database_logger.warning(
-                    f'CategoryModel {category.id} is deleted!'
+                    f'CategoryModel {category_id} is deleted!'
                     )
                 session.commit()
                 session.close()
 
-        async def update(self, category: CategoryModel):
+        async def update(self, category_id: int, update_data: dict):
             with self.session_maker() as session:
-                session.query(CategoryModel).filter_by(
-                    key=category.id
-                    ).update({
-                    'id': category.id,
-                    'name': category.name,
-                    'descripption': category.description,
-                    })
+                session.execute(
+                    update(CategoryModel).where(
+                        CategoryModel.id == category_id
+                    ).values(update_data)
+                )
                 database_logger.warning(
-                    f'PreferenceModel {category.id} is updated!'
-                    )
+                    f'CategoryModel {category_id} is updated with {update_data}'
+                )
                 session.commit()
                 session.close()
 
@@ -519,15 +517,15 @@ class Database:
             self, category_id: str | int
         ) -> QuestionModel | None:
             with self.session_maker() as session:
-                data = session.query(QuestionModel).filter_by(
+                questions = session.query(QuestionModel).filter_by(
                 category_id=category_id
                 ).all()
-                if data:
+                if questions:
                     database_logger.info(
                         f'Questions by {category_id} are retrieved from database'
                     )
                     session.close()
-                    return data
+                    return questions
                 else:
                     database_logger.info(
                         f'No questions by category {category_id} in database'
@@ -558,7 +556,7 @@ class Database:
         async def delete(self, question: QuestionModel):
             with self.session_maker() as session:
                 session.query(QuestionModel).filter_by(
-                    key=question.id
+                    id=question.id
                     ).delete()
                 database_logger.warning(
                     f'QuestionModel {question.id} is deleted!'
@@ -566,18 +564,16 @@ class Database:
                 session.commit()
                 session.close()
 
-        async def update(self, question: QuestionModel):
+        async def update(self, question_id: int, update_data: dict):
             with self.session_maker() as session:
-                session.query(QuestionModel).filter_by(
-                    key=question.id
-                    ).update({
-                    'id': question.id,
-                    'name': question.name,
-                    'descripption': question.description,
-                })
+                session.execute(
+                    update(QuestionModel).where(
+                        QuestionModel.id == question_id
+                    ).values(update_data)
+                )
                 database_logger.warning(
-                    f'QuestionModel {question.id} is updated!'
-                    )
+                    f'QuestionModel {question_id} is updated with {update_data}'
+                )
                 session.commit()
                 session.close()
 

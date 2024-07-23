@@ -7,13 +7,16 @@ class EnTranslation:
     month_btn_12 = 'From the year 🗓️'
     notification_btn_on = 'Enable notifications 🔊'
     notification_btn_off = 'Turn off notifications 🔇'
+    edit_category_btn = 'Edit Category 📝'
+    edit_question_btn = 'Edit Question 📝'
     update_btn_category = 'Update the category'
     update_btn_question = 'Update the question ❓'
-    update_btn_category_description = 'Update Description 📝'
+    update_btn_category_content = 'Update Description 📝'
     update_btn_content = 'Update content 📝'
     remove_btn = 'Delete 🗑️'
     update_btn = 'Update 🔄'
     back_btn = 'Back 🔙 '
+    back_to_categories_btn = 'Back 🔙 '
     delete_btn = 'Close 🚫'
     delete_tickets_btn = 'Delete tickets 🗑️'
     add_category_btn = 'Add ➕'
@@ -192,6 +195,7 @@ class EnTranslation:
 
     # Managers Ticket Data
     data_update = 'The data has been updated!'
+    data_update_empty = 'No data to update!'
 
     data_ask_comment = 'Please enter a <b>comment</b> to the conversation <i>(up to 100 characters)</i>'
     data_ask_comment_error = '<b>I did not get it 🤪</b>\n\Make sure you entered the data correctly? Try to send a comment again'

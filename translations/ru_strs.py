@@ -7,13 +7,16 @@ class RuTranslation:
     month_btn_12 = 'От года 🗓️'
     notification_btn_on = 'Включить уведомления 🔊'
     notification_btn_off = 'Выключить уведомления 🔇'
+    edit_category_btn = 'Редактировать категорию 📝'
+    edit_question_btn = 'Редактировать вопрос 📝'
     update_btn_category = 'Обновить категорию'
     update_btn_question = 'Обновить вопрос ❓'
-    update_btn_category_description = 'Обновить описание 📝'
+    update_btn_category_content = 'Обновить описание 📝'
     update_btn_content = 'Обновить контент 📝'
     remove_btn = 'Удалить 🗑️'
     update_btn = 'Обновить 🔄'
     back_btn = 'Назад 🔙'
+    back_to_categories_btn = 'Назад 🔙 '
     delete_btn = 'Закрыть 🚫'
     delete_tickets_btn = 'Удалить тикеты 🗑️'
     add_category_btn = 'Добавить ➕'
@@ -192,6 +195,7 @@ class RuTranslation:
 
     # Managers Ticket Data
     data_update = 'Данные обновлены!'
+    data_update_empty = 'Нет изменений для обновлений!'
 
     data_ask_comment = 'Пожалуйста, введите <b>комментарий</b> к беседе <i>(до 100 символов)</i>'
     data_ask_comment_error = '<b>Я вас не понял 🤪</b>\n\nУбедитесь, правильно ли вы ввели данные? Попробуйте отправить комментарий еще раз'

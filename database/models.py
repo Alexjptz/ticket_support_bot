@@ -61,7 +61,12 @@ class CategoryModel(base):
     name = Column(String)
     description = Column(String)
 
-    questions = relationship('QuestionModel', back_populates='category')
+    questions = relationship(
+        'QuestionModel',
+        back_populates='category',
+        cascade='all, delete',
+        passive_deletes=True
+    )
 
     def __repr__(self):
         return f'<{self.id}, {self.name}, {self.description})>'
@@ -75,7 +80,7 @@ class QuestionModel(base):
     image_url = Column(String)
     category_id = Column(Integer, ForeignKey('categories.id'))
 
-    category = relationship('CategoryModel', back_populates='questions')
+    category = relationship('CategoryModel', back_populates='questions', cascade='all, delete' )
 
     def __repr__(self):
         return f'<{self.category.name}, {self.name}, {self.answer}>'
