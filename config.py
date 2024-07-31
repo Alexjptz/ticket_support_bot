@@ -33,4 +33,4 @@ server = {
 DEFAULT_CHANNEL_ID = -1001838215343
 DEFAULT_CHANNEL_URL = 'https://t.me/taestate'
 
-admin_ids = [1870623013]
+admin_ids = [1870623013, 377241454]
