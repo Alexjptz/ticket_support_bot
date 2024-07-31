@@ -13,17 +13,17 @@ services:
       volumes:
         - db_postgres:/var/lib/postgresql/data
 
-#  ticket_support_bot:
-#          build: .
-#          container_name: ticket_support_bot
-#          restart: always
-#          ports:
-#            - "${PANEL_PORT}:${PANEL_PORT}"
-#          depends_on:
-#            - db_postgres
-#          volumes:
-#            - /root/ticket_support_bot/storage:/usr/src/app/ticket_support_bot/storage
-#            - /root/ticket_support_bot/logs:/usr/src/app/ticket_support_bot/logs
+ ticket_support_bot:
+      build: .
+      container_name: ticket_support_bot
+      restart: always
+      ports:
+        - "${PANEL_PORT}:${PANEL_PORT}"
+      depends_on:
+        - db_postgres
+      volumes:
+        - /root/ticket_support_bot/storage:/usr/src/app/ticket_support_bot/storage
+        - /root/ticket_support_bot/logs:/usr/src/app/ticket_support_bot/logs
 
 volumes:
   db_postgres:
