@@ -9,21 +9,30 @@ services:
       environment:
         - POSTGRES_USER=${DATABASE_USER}
         - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
-      restart: always
+        - POSTGRES_DB=${DATABASE_NAME}
+      restart: on-failure
       volumes:
         - db_postgres:/var/lib/postgresql/data
 
- ticket_support_bot:
-      build: .
-      container_name: ticket_support_bot
-      restart: always
-      ports:
-        - "${PANEL_PORT}:${PANEL_PORT}"
-      depends_on:
-        - db_postgres
-      volumes:
-        - /root/ticket_support_bot/storage:/usr/src/app/ticket_support_bot/storage
-        - /root/ticket_support_bot/logs:/usr/src/app/ticket_support_bot/logs
+  ticket_support_bot:
+        build: .
+        container_name: support_bot
+        restart: always
+        environment:
+          - DATABASE_HOST=db_postgres
+          - DATABASE_PORT=${DATABASE_PORT}
+          - DATABASE_USER=${DATABASE_USER}
+          - DATABASE_PASSWORD=${DATABASE_PASSWORD}
+          - DATABASE_NAME=${DATABASE_NAME}
+          - BOT_TOKEN=${BOT_TOKEN}
+        ports:
+          - "${PANEL_PORT}:${PANEL_PORT}"
+        depends_on:
+          - db_postgres
+        command: python /app/ticket_support_bot/start.py
+        volumes:
+          - /root/ticket_support_bot/storage:/app/ticket_support_bot/storage
+          - /root/ticket_support_bot/logs:/app/ticket_support_bot/logs
 
 volumes:
   db_postgres:

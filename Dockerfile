@@ -1,6 +1,7 @@
 FROM python:3.10
-COPY . /opt/ticket_support_bot/
-WORKDIR /opt/ticket_support_bot/
 
-RUN pip3 install -r /opt/ticket_support_bot/requirements.txt
+COPY . /app/ticket_support_bot/
+WORKDIR /app/ticket_support_bot/
+RUN --mount=type=cache,target=/root/.cache/pip pip install -r /app/ticket_support_bot/requirements.txt
+
 CMD ["python", "start.py"]

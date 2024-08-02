@@ -33,4 +33,4 @@ server = {
 DEFAULT_CHANNEL_ID = os.getenv('DEFAULT_CHANNEL_ID')
 DEFAULT_CHANNEL_URL = os.getenv('DEFAULT_CHANNEL_URL')
 
-admin_ids = [os.getenv('ADMINS_IDS')]
+admin_ids = ['*'] # add here Telegram user(s) ID's to use Admin bot panel
