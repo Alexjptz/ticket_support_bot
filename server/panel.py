@@ -3,7 +3,6 @@ from fastapi import FastAPI, Request, Depends, HTTPException
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqladmin import Admin
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import RedirectResponse
 
 # Project
 from logger import server_logger
