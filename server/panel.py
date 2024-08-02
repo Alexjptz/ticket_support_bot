@@ -1,6 +1,6 @@
 # Third-party
-from fastapi import FastAPI, Request
-from fastapi.security import HTTPBasic
+from fastapi import FastAPI, Request, Depends, HTTPException
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqladmin import Admin
 from starlette.middleware.sessions import SessionMiddleware
 from starlette.responses import RedirectResponse
@@ -21,13 +21,21 @@ admin = Admin(app=app, engine=db.engine)
 ]]
 
 
-@app.get('/')
-async def home(request: Request):
-    return RedirectResponse('/admin')
-
+# Define a function to check credentials
+def authenticate_user(username: str, password: str):
+    # Replace with your actual authentication logic (e.g., checking against a database)
+    authorized_users = {
+        "admin": "password123"  # Example user:password pair
+    }
+    if username in authorized_users and authorized_users[username] == password:
+        return True
+    return False
 
 @app.get('/admin')
-async def admin_page(request: Request):
+async def admin_page(request: Request, credentials: HTTPBasicCredentials = Depends(security)):
+    authorized = authenticate_user(credentials.username, credentials.password)
+    if not authorized:
+        raise HTTPException(status_code=401, detail="Unauthorized")
     return await admin.index(request)
 
 
