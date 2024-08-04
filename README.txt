@@ -16,6 +16,9 @@ SECRET_KEY=111
 DEFAULT_CHANNEL_ID= -1001838215343 # get it with @userinfobot and replace
 DEFAULT_CHANNEL_URL= 'https://t.me/CHANEL' # channel for subscription
 
+ADMIN_PANEL_NAME= # add admin name
+ADMIN_PANEL_PASSWORD= # add admin password
+
 3) Edit config.py 'admin_ids' to use admin bot panel (use @userinfobot to get ID)
 4) Install docker to your server
 5) Use 'docker compose up --build -d' to start your bot
