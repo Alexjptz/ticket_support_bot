@@ -54,7 +54,7 @@ def authenticate_user(credentials):
 @app.get('/admin')
 async def admin_page(
     request: Request,
-    credentials: HTTPBasicCredentials = Depends(security)
+    credentials: Annotated[HTTPBasicCredentials, Depends(security)]
 ):
     authorized = authenticate_user(credentials)
     if not authorized:
