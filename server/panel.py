@@ -1,9 +1,12 @@
 # Third-party
-from fastapi import FastAPI, Request, Depends, HTTPException
+import secrets
+from typing import Annotated
+
+from fastapi import FastAPI, Request, Depends, HTTPException, status
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from sqladmin import Admin
 from starlette.middleware.sessions import SessionMiddleware
-from starlette.responses import RedirectResponse
+from starlette.responses import HTMLResponse
 
 # Project
 from logger import server_logger
@@ -21,21 +24,45 @@ admin = Admin(app=app, engine=db.engine)
 ]]
 
 
-# Define a function to check credentials
-def authenticate_user(username: str, password: str):
-    # Replace with your actual authentication logic (e.g., checking against a database)
-    authorized_users = {
-        "admin": "password123"  # Example user:password pair
-    }
-    if username in authorized_users and authorized_users[username] == password:
-        return True
-    return False
+ADMIN = (cf.admin_panel['admin_name']).encode('utf8')
+PASSWORD = (cf.admin_panel['password']).encode('utf8')
+
+
+@app.get('/')
+async def home(request: Request):
+    return HTMLResponse(
+        '<h1>ACCESS DENIED</h1>',
+        status_code=status.HTTP_403_FORBIDDEN,
+        media_type='text/html'
+    )
+
+
+def authenticate_user(credentials):
+    current_username_bytes = credentials.username.encode("utf8")
+    current_password_bytes = credentials.password.encode("utf8")
+    is_correct_username = secrets.compare_digest(
+        current_username_bytes, ADMIN
+    )
+    is_correct_password = secrets.compare_digest(
+        current_password_bytes, PASSWORD
+    )
+    if not (is_correct_username and is_correct_password):
+        return False
+    return True
+
 
 @app.get('/admin')
-async def admin_page(request: Request, credentials: HTTPBasicCredentials = Depends(security)):
-    authorized = authenticate_user(credentials.username, credentials.password)
+async def admin_page(
+    request: Request,
+    credentials: HTTPBasicCredentials = Depends(security)
+):
+    authorized = authenticate_user(credentials)
     if not authorized:
-        raise HTTPException(status_code=401, detail="Unauthorized")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
     return await admin.index(request)
 
 

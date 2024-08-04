@@ -30,6 +30,11 @@ server = {
     'secret_key': os.getenv('SECRET_KEY')
 }
 
+admin_panel = {
+    'admin_name': os.getenv('ADMIN_PANEL_NAME'),
+    'password': os.getenv('ADMIN_PANEL_PASSWORD')
+}
+
 DEFAULT_CHANNEL_ID = os.getenv('DEFAULT_CHANNEL_ID')
 DEFAULT_CHANNEL_URL = os.getenv('DEFAULT_CHANNEL_URL')
 
