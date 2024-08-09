@@ -23,7 +23,7 @@ async def get_menu_reply_keyboard(lang: str) -> ReplyKeyboardMarkup:
 async def get_choose_lang_inline_keyboard(lang: str) -> InlineKeyboardMarkup:
     button_list = [
         [InlineKeyboardButton(text='🇷🇺', callback_data='lang_btn ru'),
-         InlineKeyboardButton(text='🇺🇸', callback_data='lang_btn en')],
+         InlineKeyboardButton(text='🇬🇧', callback_data='lang_btn en')],
 
     ]
 

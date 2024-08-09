@@ -644,7 +644,8 @@ async def get_category_details_inline_keyboard(
             ),
             InlineKeyboardButton(
                 text=strs(lang=lang).update_btn,
-                callback_data=f'c_update {category_id} {int(is_admin)}')
+                callback_data=f'c_update {category_id} {int(is_admin)}'
+            )
         ],)
     button_list.append([
         InlineKeyboardButton(
